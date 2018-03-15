@@ -95,9 +95,12 @@ public class Walk : MonoBehaviour {
         SendLeave();
     }
 
+
+
     private void Start()
     {
         Connect();
+
         //请求其他玩家列表
         //把自己放进一个随机位置
         UnityEngine.Random.seed = (int)DateTime.Now.Ticks;
@@ -116,7 +119,7 @@ public class Walk : MonoBehaviour {
         //Socket
         socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         //connect
-        socket.Connect("127.0.0.1", 1234);
+        socket.Connect("127.0.0.1", 8041);
         id = socket.LocalEndPoint.ToString();
         //Recv
         socket.BeginReceive(readBuff, 0, BUFFER_SIZE, SocketFlags.None, ReceiveCB, null);
@@ -141,4 +144,74 @@ public class Walk : MonoBehaviour {
             socket.Close();
         }
     }
+
+    // 如果 MonoBehaviour 已启用，则在每一帧都调用 Update
+    private void Update()
+    {
+        //处理消息列表
+        for (int i = 0; i < msgList.Count; i++)
+        {
+            HandMsg();
+        }
+        //移动
+        Move();
+
+    }
+    //处理消息列表
+    private void HandMsg()
+    {
+        //获取一条消息
+        if (msgList.Count <= 0)
+            return;
+        string str = msgList[0];
+        msgList.RemoveAt(0);
+        //协议
+        string[] args = str.Split(' ');
+        if(args[0] == "POS")
+        {
+            OnRecvPos(args[1], args[2], args[3], args[4]);
+        }
+        else if (args[0] == "LEAVE")
+        {
+            OnRecvLeave(args[1]);
+        }
+
+
+    }
+
+    private void OnRecvPos(string id, string xStr, string yStr, string zStr)
+    {
+        //不更新自己的位置
+        if (id == this.id)
+            return;
+        //解析协议
+        float x = float.Parse(xStr);
+        float y = float.Parse(yStr);
+        float z = float.Parse(zStr);
+        Vector3 pos = new Vector3(x, y, z);
+        if (players.ContainsKey(id))
+        {
+            players[id].transform.position = pos;
+        }
+        //没有初始化的玩家
+        else
+        {
+            AddPlayer(id, pos);
+        }
+
+
+    }
+
+    private void OnRecvLeave(string v)
+    {
+        if (players.ContainsKey(id))
+        {
+            Destroy(players[id]);
+            players[id] = null;
+        }
+
+    }
+
+    
+
 }
