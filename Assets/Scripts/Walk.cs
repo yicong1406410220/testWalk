@@ -49,7 +49,7 @@ public class Walk : MonoBehaviour {
     void SendLeave()
     {
         //组装协议
-        string str = "LEAVE";
+        string str = "LEAVE ";
         str += id + " ";
         byte[] bytes = System.Text.Encoding.UTF8.GetBytes(str);
         socket.Send(bytes);
@@ -96,7 +96,7 @@ public class Walk : MonoBehaviour {
     }
 
 
-
+    // 仅在首次调用 Update 方法之前调用 Start
     private void Start()
     {
         Connect();
@@ -104,14 +104,15 @@ public class Walk : MonoBehaviour {
         //请求其他玩家列表
         //把自己放进一个随机位置
         UnityEngine.Random.seed = (int)DateTime.Now.Ticks;
-        float x = 100 + UnityEngine.Random.Range(-30, 30);
+        float x = 200 + UnityEngine.Random.Range(-30, 30);
         float y = 1;
-        float z = 100 + UnityEngine.Random.Range(-20, 20);
+        float z = 200 + UnityEngine.Random.Range(-20, 20);
         Vector3 pos = new Vector3(x, y, z);
         AddPlayer(id, pos);
         //同步
         SendPos();
     }
+
 
     //连接
     private void Connect()
